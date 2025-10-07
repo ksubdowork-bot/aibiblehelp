@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>기독교인을 위한 AI </title>
+<title>-기독교인을 위한 AI-</title>
 <style>
   :root{--bg:#f5f6fa;--ink:#111;--muted:#6b7280;--card:#fff;--border:#eceff3;--shadow:0 8px 24px rgba(16,24,40,.04);--radius:14px;--gap:16px;--maxw:900px;--font:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;--pill:#f2f4f7;--user:#eef0ff;--ai:#f7f7f9;--primary:#111}
   body{font-family:var(--font);background:var(--bg);color:var(--ink);margin:0}
@@ -31,22 +31,29 @@
   <div class="container">
     <div class="stack">
       <div class="card">
-        <h3>설정</h3>
-        <label>연령대</label>
-        <select id="age">
-          <option value="">선택</option>
-          <option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대</option>
-        </select>
-        <label style="margin-top:12px">추천 질문(체크박스 다중 선택)</label>
-        <div id="qbox" class="qgrid"><div class="muted">연령대를 먼저 선택</div></div>
-        <label style="margin-top:12px">직접 질문</label>
-        <input id="custom" placeholder="자유 질문 입력">
-        <div class="muted" id="personaInfo" style="margin-top:6px"></div>
-        <div class="actions" style="margin-top:10px">
-          <button id="ask">질문하기</button>
-          <button id="clear">히스토리 초기화</button>
-        </div>
-        <div class="muted" style="margin-top:8px" id="templateInfo"></div>
+          <h3>설정</h3>
+
+          <label>연령대</label>
+          <select id="age">
+            <option value="">선택</option>
+            <option>10대</option><option>20대</option><option>30대</option>
+            <option>40대</option><option>50대</option>
+          </select>
+
+          <!-- 1) 직접 질문을 위로 이동 -->
+          <label style="margin-top:12px">직접 질문</label>
+          <input id="custom" placeholder="자유 질문 입력">
+
+          <!-- 2) 프리셋 체크박스는 한 칸 안에 표시 -->
+          <label style="margin-top:12px">추천 질문</label>
+          <div id="qbox" class="qbox"><div class="muted">연령대를 먼저 선택</div></div>
+
+          <div class="muted" id="personaInfo" style="margin-top:6px"></div>
+          <div class="actions" style="margin-top:10px">
+            <button id="ask">질문하기</button>
+            <button id="clear">히스토리 초기화</button>
+          </div>
+          <div class="muted" style="margin-top:8px" id="templateInfo"></div>
       </div>
       <div class="card">
         <h3>대화</h3>
