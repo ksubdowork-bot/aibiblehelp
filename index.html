@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>연령대 페르소나 Q&A</title>
+<style>
+  :root{
+    --bg:#f5f6fa; --ink:#111; --muted:#6b7280; --card:#fff; --border:#eceff3;
+    --shadow:0 8px 24px rgba(16,24,40,.04); --radius:14px; --gap:16px; --maxw:900px;
+    --font:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; --pill:#f2f4f7; --user:#eef0ff; --ai:#f7f7f9; --primary:#111;
+  }
+  body{font-family:var(--font); background:var(--bg); color:var(--ink); margin:0}
+  .container{max-width:var(--maxw); margin:32px auto; padding:16px}
+  .stack{display:flex; flex-direction:column; gap:var(--gap)}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px}
+  .card h3{margin:0 0 12px; font-size:16px}
+  label{font-weight:600; display:block; margin:8px 0 6px}
+  input,textarea,button{width:100%; padding:10px; border:1px solid #e5e7eb; border-radius:10px; font-size:14px}
+  button{background:var(--primary); color:#fff; border:none; cursor:pointer}
+  button:disabled{opacity:.6; cursor:not-allowed}
+  .muted{color:var(--muted); font-size:12px}
+  .chat{white-space:pre-wrap; line-height:1.6; max-height:70vh; overflow:auto}
+  .msg{padding:12px 14px; border-radius:12px; margin:8px 0}
+  .user{background:var(--user)}
+  .ai{background:var(--ai)}
+  .actions{display:flex; gap:8px}
+  .qgrid{display:grid; grid-template-columns:1fr; gap:8px}
+  .qitem{display:flex; align-items:flex-start; gap:10px; padding:10px; border:1px solid #e5e7eb; border-radius:10px; background:#fff}
+  .qitem input[type=checkbox]{width:auto; margin-top:3px}
+  .pill{display:inline-block; background:var(--pill); border-radius:999px; padding:6px 10px; margin:4px 6px 0 0; font-size:12px}
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="stack">
+      <div class="card">
+        <h3>설정</h3>
+        <label>연령대</label>
+        <select id="age">
+          <option value="">선택</option>
+          <option>10대</option><option>20대</option><option>30대</option><option>40대</option><option>50대</option>
+        </select>
+        <label style="margin-top:12px">추천 질문(체크박스 다중 선택)</label>
+        <div id="qbox" class="qgrid"><div class="muted">연령대를 먼저 선택</div></div>
+        <label style="margin-top:12px">직접 질문</label>
+        <input id="custom" placeholder="자유 질문 입력">
+        <div class="muted" id="personaInfo" style="margin-top:6px"></div>
+        <div class="actions" style="margin-top:10px">
+          <button id="ask">질문하기</button>
+          <button id="clear">히스토리 초기화</button>
+        </div>
+        <div class="muted" style="margin-top:8px" id="templateInfo"></div>
+      </div>
+      <div class="card">
+        <h3>대화</h3>
+        <div id="chat" class="chat"></div>
+      </div>
+    </div>
+  </div>
+<script>
+  const APPS_SCRIPT_URL='YOUR_DEPLOYED_WEB_APP_URL/exec';
+  const ageEl=document.getElementById('age');
+  const qbox=document.getElementById('qbox');
+  const customEl=document.getElementById('custom');
+  const askBtn=document.getElementById('ask');
+  const clearBtn=document.getElementById('clear');
+  const chatEl=document.getElementById('chat');
+  const personaInfo=document.getElementById('personaInfo');
+  const templateInfo=document.getElementById('templateInfo');
+
+  let state={ age:'', persona:null, background:'', questions:[], history:[], template:null };
+  const key=()=>`qa-history:${state.age}`;
+
+  ageEl.addEventListener('change', loadMeta);
+
+  async function loadMeta(){
+    state.age=ageEl.value; if(!state.age){ qbox.innerHTML='<div class="muted">연령대를 먼저 선택</div>'; return; }
+    const url=`${APPS_SCRIPT_URL}?age=${encodeURIComponent(state.age)}`;
+    const res=await fetch(url); const data=await res.json();
+    state.persona=data.persona||null; state.background=data.background||''; state.template=data.template||null; state.questions=Array.isArray(data.questions)?data.questions:[];
+    renderCheckboxes(state.questions);
+    personaInfo.innerHTML = state.persona && state.persona.SystemPrompt ? `<span class="pill">페르소나: ${state.persona.PersonaName||''}</span>`: '';
+    if(state.template){ templateInfo.textContent = `템플릿: ${state.template.header} / 섹션: ${state.template.sections.join(', ')} / 섹션당 ${state.template.bullets}개`; }
+    loadHistory();
+  }
+
+  function renderCheckboxes(list){
+    if(!list.length){ qbox.innerHTML='<div class="muted">해당 연령대의 추천 질문이 없습니다.</div>'; return; }
+    qbox.innerHTML = list.map((q,idx)=>{
+      const id = `q_${idx}`;
+      const label = q.category?`[${q.category}] ${q.text}`:q.text;
+      return `<label class="qitem"><input type="checkbox" value="${q.text}" id="${id}"><span>${label}</span></label>`;
+    }).join('');
+  }
+
+  function getCheckedQuestions(){
+    return [...qbox.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value);
+  }
+
+  function loadHistory(){ chatEl.innerHTML=''; state.history = JSON.parse(localStorage.getItem(key())||'[]'); state.history.forEach(m=>renderMsg(m.content,m.role)); }
+  function saveHistory(){ localStorage.setItem(key(), JSON.stringify(state.history.slice(-50))); }
+
+  askBtn.addEventListener('click', async ()=>{
+    if(!state.age){ alert('연령대를 선택하세요.'); return; }
+    const selected=getCheckedQuestions();
+    const userMessage=customEl.value.trim();
+    if(selected.length===0 && !userMessage){ alert('질문을 선택하거나 입력하세요.'); return; }
+
+    const promptView = [selected.length? `Q: ${selected.join(' | ')}`:'', userMessage?`Q: ${userMessage}`:''].filter(Boolean).join('\n');
+    renderMsg(promptView,'user');
+
+    askBtn.disabled=true;
+    try{
+      const res=await fetch(APPS_SCRIPT_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+        age: state.age, selectedQuestions: selected, userMessage, history: state.history, model:'gpt-4o-mini'
+      })});
+      const data=await res.json(); if(data.error) throw new Error(data.error);
+      renderMsg(data.reply||'','assistant');
+      state.history.push({ role:'user', content: promptView });
+      state.history.push({ role:'assistant', content: data.reply||'' });
+      saveHistory();
+    }catch(err){ renderMsg(`[오류] ${err.message}`,'assistant'); }
+    finally{ askBtn.disabled=false; customEl.value=''; }
+  });
+
+  clearBtn.addEventListener('click', ()=>{ state.history=[]; saveHistory(); loadHistory(); });
+
+  function renderMsg(text, role){ const div=document.createElement('div'); div.className='msg '+(role==='user'?'user':'ai'); div.textContent=text; chatEl.appendChild(div); chatEl.scrollTop=chatEl.scrollHeight; }
+</script>
+</body>
+</html>
