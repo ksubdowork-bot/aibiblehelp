@@ -1,0 +1,17 @@
+/* 기본 스타일 */
+body {
+  font-family: system-ui, sans-serif;
+  background-color: #f9fafb;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+h1, h2, h3 {
+  text-align: center;
+  margin-top: 2rem;
+}
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+}
