@@ -13,6 +13,7 @@
   .card h3{margin:0 0 12px;font-size:16px}
   label{font-weight:600;display:block;margin:8px 0 6px}
   input,button{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px}
+  #custom{ width:100%; box-sizing:border-box; border:1px solid #e5e7eb; border-radius:10px; padding:10px 12px; font-size:15px; background:#fff }
   button{background:var(--primary);color:#fff;border:none;cursor:pointer}
   button:disabled{opacity:.6;cursor:not-allowed}
   .muted{color:var(--muted);font-size:12px}
@@ -21,9 +22,10 @@
   .user{background:var(--user)}
   .ai{background:var(--ai)}
   .actions{display:flex;gap:8px}
-  .qgrid{display:grid;grid-template-columns:1fr;gap:8px}
-  .qitem{display:flex;align-items:flex-start;gap:10px;padding:10px;border:1px solid #e5e7eb;border-radius:10px;background:#fff}
-  .qitem input[type=checkbox]{width:auto;margin-top:3px}
+  .qbox{border:1px solid #e5e7eb; border-radius:10px; background:#fff; padding:8px}
+  .qitem{display:flex; align-items:center; gap:10px; padding:8px 4px; border:0; background:transparent; margin:0}
+  .qitem + .qitem{border-top:1px solid #f0f2f5}
+  .qitem input[type=checkbox]{width:auto; margin:0}
   .pill{display:inline-block;background:var(--pill);border-radius:999px;padding:6px 10px;margin:4px 6px 0 0;font-size:12px}
 </style>
 </head>
@@ -95,13 +97,6 @@
     }
   }
 
-  function renderCheckboxes(list){
-    if(!list.length){ qbox.innerHTML='<div class="muted">해당 연령대의 추천 질문이 없습니다.</div>'; return; }
-    qbox.innerHTML = list.map((q,idx)=>{
-      const label = q.category?`[${q.category}] ${q.text}`:q.text;
-      return `<label class="qitem"><input type="checkbox" value="${q.text}"><span>${label}</span></label>`;
-    }).join('');
-  }
   function getCheckedQuestions(){ return [...qbox.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value); }
   function loadHistory(){ chatEl.innerHTML=''; state.history = JSON.parse(localStorage.getItem(key())||'[]'); state.history.forEach(m=>renderMsg(m.content,m.role)); }
   function saveHistory(){ localStorage.setItem(key(), JSON.stringify(state.history.slice(-50))); }
@@ -139,6 +134,16 @@
     const div=document.createElement('div'); div.className='msg '+(role==='user'?'user':'ai'); div.textContent=text;
     chatEl.appendChild(div); chatEl.scrollTop=chatEl.scrollHeight;
   }
+    function renderCheckboxes(list){
+      if(!list.length){
+        qbox.innerHTML='<div class="muted">해당 연령대의 추천 질문이 없습니다.</div>';
+        return;
+      }
+      qbox.innerHTML = list.map(q=>{
+        return `<label class="qitem"><input type="checkbox" value="${q.text}"><span>${q.text}</span></label>`;
+      }).join('');
+    }
+    
 </script>
 </body>
 </html>
