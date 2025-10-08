@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>-기독교인을 위한 AI-</title>
+<title>-기독교인을 위한 AI V.0.95-</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -27,12 +27,10 @@
           <label style="margin-top:12px">추천 질문</label>
           <div id="qbox" class="qbox"><div class="muted">연령대를 먼저 선택</div></div>
 
-          <div class="muted" id="personaInfo" style="margin-top:6px"></div>
           <div class="actions" style="margin-top:10px">
             <button id="ask">질문하기</button>
             <button id="clear">히스토리 초기화</button>
           </div>
-          <div class="muted" style="margin-top:8px" id="templateInfo"></div>
       </div>
       <div class="card">
         <h3>대화</h3>
@@ -50,8 +48,6 @@
   const askBtn=document.getElementById('ask');
   const clearBtn=document.getElementById('clear');
   const chatEl=document.getElementById('chat');
-  const personaInfo=document.getElementById('personaInfo');
-  const templateInfo=document.getElementById('templateInfo');
 
   let state={ age:'', persona:null, background:'', questions:[], history:[], template:null };
   const key=()=>`qa-history:${state.age}`;
@@ -66,8 +62,6 @@
       state.persona=data.persona||null; state.background=data.background||''; state.template=data.template||null;
       state.questions=Array.isArray(data.questions)?data.questions:[];
       renderCheckboxes(state.questions);
-      personaInfo.innerHTML = state.persona && state.persona.SystemPrompt ? `<span class="pill">페르소나: ${state.persona.PersonaName||''}</span>`: '';
-      if(state.template){ templateInfo.textContent = `템플릿: ${state.template.header} / 섹션: ${state.template.sections.join(', ')} / 섹션당 ${state.template.bullets}개`; }
       loadHistory();
     }catch(e){
       renderMsg(`[오류] 메타 로드 실패: ${e.message}`,'assistant');
