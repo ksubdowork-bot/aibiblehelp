@@ -15,3 +15,12 @@ h1, h2, h3 {
   margin: 0 auto;
   padding: 1rem;
 }
+#custom {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  background: #fff;
+}
