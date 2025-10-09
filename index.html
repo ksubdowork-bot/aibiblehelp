@@ -22,11 +22,8 @@
             
           </select>
 
-          <!-- 1) 직접 질문을 위로 이동 -->
           <label style="margin-top:12px">직접 질문</label>
           <input id="custom" placeholder="자유 질문 입력">
-
-          <!-- 2) 프리셋 체크박스는 한 칸 안에 표시 -->
           <label style="margin-top:12px">추천 질문</label>
           <div id="qbox" class="qbox"><div class="muted">연령대를 먼저 선택</div></div>
 
@@ -77,11 +74,14 @@
 
   askBtn.addEventListener('click', async ()=>{
     if(!state.age){ alert('연령대를 선택하세요.'); return; }
-    const selected=getCheckedQuestions();
     const userMessage=customEl.value.trim();
+    const selected=getCheckedQuestions();
     if(selected.length===0 && !userMessage){ alert('질문을 선택하거나 입력하세요.'); return; }
 
-    const promptView = [selected.length? `Q: ${selected.join(' | ')}`:'', userMessage?`Q: ${userMessage}`:''].filter(Boolean).join('\n');
+  const promptView = [
+  userMessage ? `Q1: ${userMessage}` : '',
+  selected.length ? selected.map((q, i) => `Q${i + 2}: ${q}`).join(' | ') : ''
+].filter(Boolean).join('\n');
     renderMsg(promptView,'user');
     askBtn.disabled=true;
     try{
@@ -97,9 +97,15 @@
       saveHistory();
     }catch(err){
       renderMsg(`[오류] ${err.message}`,'assistant');
-    }finally{
-      askBtn.disabled=false; customEl.value='';
-    }
+  } finally {
+  askBtn.disabled = false;
+  customEl.value = '';
+  [...qbox.querySelectorAll('input[type=checkbox]')].forEach(cb => cb.checked = false);
+
+  // 편의성
+  customEl.focus();                 // 다음 질문 입력 포커스
+  chatEl.scrollTop = chatEl.scrollHeight; // 대화창 맨 아래 유지
+}
   });
 
   clearBtn.addEventListener('click', ()=>{ state.history=[]; saveHistory(); loadHistory(); });
