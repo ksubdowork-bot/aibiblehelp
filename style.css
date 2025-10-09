@@ -52,11 +52,15 @@ input, button { width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-ra
 button { background: var(--primary); color: #fff; border: none; cursor: pointer; }
 button:disabled { opacity: .6; cursor: not-allowed; }
 .muted { color: var(--muted); font-size: 12px; }
-.chat { white-space: pre-wrap; line-height: 1.6; max-height: 70vh; overflow: auto; }
+.chat { white-space: pre-wrap; line-height: 1.6; max-height: 70vh; overflow: auto; word-break: break-word; }
 .msg { padding: 12px 14px; border-radius: 12px; margin: 8px 0; }
 .user { background: var(--user); }
 .ai { background: var(--ai); }
-.actions { display: flex; gap: 8px; }
+.actions { display:flex; gap:12px; align-items:stretch; }
+.actions .btn-ask, .actions .btn-clear { width:auto; }
+.actions .btn-ask  { flex:0 0 80%; font-weight:600; }
+.actions .btn-clear{ flex:0 0 20%; background:#f0f0f0; color:#444; border:1px solid #ccc; }
+.actions .btn-clear:hover{ background:#e2e2e2; }
 
 /* 입력칸 폭 및 포커스 */
 #custom {
@@ -75,9 +79,14 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 }
 
 /* 프리셋 체크박스: 한 칸에 모두 표시 */
-.qbox { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 8px; }
+.qbox { border: 1px solid #e5e7eb; border-radius: 10px; background: #fff; padding: 8px; max-height:220px; overflow:auto; }
 .qitem { display: flex; align-items: center; gap: 10px; padding: 8px 4px; border: 0; background: transparent; margin: 0; }
 .qitem + .qitem { border-top: 1px solid #f0f2f5; }
 .qitem input[type=checkbox] { width: auto; margin: 0; }
 .pill { display: inline-block; background: var(--pill); border-radius: 999px; padding: 6px 10px; margin: 4px 6px 0 0; font-size: 12px; }
 #personaInfo, #templateInfo { display: none !important; }
+
+@media (max-width:560px){
+  .actions{ flex-direction:column; }
+  .actions .btn-ask, .actions .btn-clear{ flex:1 1 auto; width:100%; }
+}
