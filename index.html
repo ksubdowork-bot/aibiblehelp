@@ -41,7 +41,6 @@
 
 <script>
   const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxjy-PnVTVofMAiTkNmWvYdwr7dODSbsF0tD6-W9og3fHDRk0spy98whbojlwcCwgXvUQ/exec';
-
   const ageEl=document.getElementById('age');
   const qbox=document.getElementById('qbox');
   const customEl=document.getElementById('custom');
@@ -67,46 +66,68 @@
       renderMsg(`[오류] 메타 로드 실패: ${e.message}`,'assistant');
     }
   }
+function showTypingIndicator() {
+  const div = document.createElement('div');
+  div.className = 'msg ai typing';
+  div.setAttribute('aria-live', 'polite');
+  div.innerHTML = `AI 성경 도우미가 생각중입니다<span class="dots"></span>`;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
 
+  // 제거 함수 반환
+  return () => {
+    if (div && div.parentNode) div.parentNode.removeChild(div);
+  };
+}
   function getCheckedQuestions(){ return [...qbox.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value); }
   function loadHistory(){ chatEl.innerHTML=''; state.history = JSON.parse(localStorage.getItem(key())||'[]'); state.history.forEach(m=>renderMsg(m.content,m.role)); }
   function saveHistory(){ localStorage.setItem(key(), JSON.stringify(state.history.slice(-50))); }
 
-  askBtn.addEventListener('click', async ()=>{
-    if(!state.age){ alert('연령대를 선택하세요.'); return; }
-    const userMessage=customEl.value.trim();
-    const selected=getCheckedQuestions();
-    if(selected.length===0 && !userMessage){ alert('질문을 선택하거나 입력하세요.'); return; }
+askBtn.addEventListener('click', async ()=>{
+  if(!state.age){ alert('연령대를 선택하세요.'); return; }
+  const userMessage = customEl.value.trim();
+  const selected = getCheckedQuestions();
+  if(selected.length===0 && !userMessage){ alert('질문을 선택하거나 입력하세요.'); return; }
 
-const promptView = [
-  userMessage ? `${userMessage}` : '',
-  selected.length ? selected.join(' | ') : ''
-].filter(Boolean).join('\n');
-    renderMsg(promptView,'user');
-    askBtn.disabled=true;
-    try{
-      const body = JSON.stringify({ age: state.age, selectedQuestions: selected, userMessage, history: state.history, model:'gpt-4o-mini' });
-      // 사전검사 회피: Content-Type 헤더 미설정
-      const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
-      const text = await res.text();
-      let data; try{ data = JSON.parse(text); } catch { throw new Error(text); }
-      if(data.error) throw new Error(data.error);
-      renderMsg(data.reply||'','assistant');
-      state.history.push({ role:'user', content: promptView });
-      state.history.push({ role:'assistant', content: data.reply||'' });
-      saveHistory();
-    }catch(err){
-      renderMsg(`[오류] ${err.message}`,'assistant');
-  } finally {
-  askBtn.disabled = false;
-  customEl.value = '';
-  [...qbox.querySelectorAll('input[type=checkbox]')].forEach(cb => cb.checked = false);
+  const promptView = [
+    userMessage ? `${userMessage}` : '',
+    selected.length ? selected.join(' | ') : ''
+  ].filter(Boolean).join('\n');
+  renderMsg(promptView,'user');
 
-  // 편의성
-  customEl.focus();                 // 다음 질문 입력 포커스
-  chatEl.scrollTop = chatEl.scrollHeight; // 대화창 맨 아래 유지
-}
-  });
+  askBtn.disabled = true;
+
+  // ✅ 대화창 타이핑 인디케이터 표시
+  const removeTyping = showTypingIndicator();
+
+  try{
+    const body = JSON.stringify({
+      age: state.age, selectedQuestions: selected, userMessage,
+      history: state.history, model:'gpt-4o-mini'
+    });
+    const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+    const text = await res.text();
+    let data; try { data = JSON.parse(text); } catch { throw new Error(text); }
+    if(data.error) throw new Error(data.error);
+
+    // 인디케이터 제거 후 답변 출력
+    removeTyping();
+    renderMsg(data.reply||'','assistant');
+
+    state.history.push({ role:'user', content: promptView });
+    state.history.push({ role:'assistant', content: data.reply||'' });
+    saveHistory();
+  } catch(err){
+    removeTyping();
+    renderMsg(`[오류] ${err.message}`,'assistant');
+  } finally{
+    askBtn.disabled = false;
+    customEl.value = '';
+    [...qbox.querySelectorAll('input[type=checkbox]')].forEach(cb => cb.checked = false);
+    customEl.focus();
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+});
 
   clearBtn.addEventListener('click', ()=>{ state.history=[]; saveHistory(); loadHistory(); });
 
