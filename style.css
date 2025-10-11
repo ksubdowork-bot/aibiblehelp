@@ -92,22 +92,26 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 }
 
 /* ---- 타이핑 인디케이터 ---- */
-.msg.ai.typing {
-  background: var(--ai);
-  color: var(--muted);
-}
+/* 안정적인 점 애니메이션 (줄바꿈 방지) */
+.msg.ai.typing { background: var(--ai); color: var(--muted); }
 
-/* 점 ... 애니메이션 */
-.typing .dots::after {
-  content: "...";
+.typing .dots{
   display: inline-block;
-  overflow: hidden;
-  width: 0ch;
-  /* 0ch→3ch를 3스텝으로 반복 */
-  animation: typingDots 1.2s steps(3, end) infinite;
+  white-space: nowrap;    /* 줄바꿈 방지 */
+  line-height: inherit;
 }
 
-@keyframes typingDots {
-  0%   { width: 0ch; }
-  100% { width: 3ch; }
+.typing .dots span{
+  display: inline-block;
+  opacity: .2;
+  animation: dotBlink 1.2s infinite steps(1, end);
+}
+
+.typing .dots span:nth-child(2){ animation-delay: .2s; }
+.typing .dots span:nth-child(3){ animation-delay: .4s; }
+
+@keyframes dotBlink{
+  0%   { opacity: .2; }
+  30%  { opacity: 1; }
+  100% { opacity: .2; }
 }
