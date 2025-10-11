@@ -90,3 +90,24 @@ button:disabled { opacity: .6; cursor: not-allowed; }
   .actions{ flex-direction:column; }
   .actions .btn-ask, .actions .btn-clear{ flex:1 1 auto; width:100%; }
 }
+
+/* ---- 타이핑 인디케이터 ---- */
+.msg.ai.typing {
+  background: var(--ai);
+  color: var(--muted);
+}
+
+/* 점 ... 애니메이션 */
+.typing .dots::after {
+  content: "...";
+  display: inline-block;
+  overflow: hidden;
+  width: 0ch;
+  /* 0ch→3ch를 3스텝으로 반복 */
+  animation: typingDots 1.2s steps(3, end) infinite;
+}
+
+@keyframes typingDots {
+  0%   { width: 0ch; }
+  100% { width: 3ch; }
+}
