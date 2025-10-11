@@ -78,9 +78,9 @@
     const selected=getCheckedQuestions();
     if(selected.length===0 && !userMessage){ alert('질문을 선택하거나 입력하세요.'); return; }
 
-  const promptView = [
-  userMessage ? `Q1: ${userMessage}` : '',
-  selected.length ? selected.map((q, i) => `Q${i + 2}: ${q}`).join(' | ') : ''
+const promptView = [
+  userMessage ? `${userMessage}` : '',
+  selected.length ? selected.join(' | ') : ''
 ].filter(Boolean).join('\n');
     renderMsg(promptView,'user');
     askBtn.disabled=true;
