@@ -115,7 +115,7 @@
       const div = document.createElement('div');
       div.className = 'msg ai typing';
       div.setAttribute('aria-live', 'polite');
-      div.innerHTML = 'AI 성경 도우미가 생각중입니다<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
+      div.innerHTML = '성경을 찾고있습니다<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
       chatEl.appendChild(div);
       scrollChatToBottom();
       return () => {
@@ -223,7 +223,7 @@
         return;
       }
 
-      const userRequest = '위 주제에 대해 기도문을 작성해줘.';
+      const userRequest = '위 내용을 바탕으로 기도문 작성';
       renderMsg(userRequest, 'user');
 
       const removeTyping = showTypingIndicator();
