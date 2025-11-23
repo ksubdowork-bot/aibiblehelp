@@ -1,37 +1,39 @@
-<!-- // 10월 09일 16:57 -->
+<!-- // 11월 23일 21:17 -->
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>-기독교인을 위한 AI V.0.80-</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>-기독교인을 위한 AI V.0.80-</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
     <div class="stack">
       <div class="card">
-          <h3>주제별 AI 성경말씀 및 기도문 작성</h3>
+        <h3>주제별 AI 성경말씀 및 기도문 작성</h3>
 
-          <label>자신의 연령대를 선택해 주세요</label>
-          <select id="age">
-            <option value="">선택</option>
-            <option>10대</option><option>20대</option><option>30대</option>
-            <option>40대</option><option>50대</option><option>60대</option>
-            <option>70대</option><option>80대</option><option>90대</option><option>100대</option>
-            
-          </select>
+        <label>자신의 연령대를 선택해 주세요</label>
+        <select id="age">
+          <option value="">선택</option>
+          <option>10대</option><option>20대</option><option>30대</option>
+          <option>40대</option><option>50대</option><option>60대</option>
+          <option>70대</option><option>80대</option><option>90대</option><option>100대</option>
+        </select>
 
-          <label style="margin-top:12px">기도하고싶은 내용을 입력해주세요</label>
-          <input id="custom" placeholder="자유 질문 입력">
-          <label style="margin-top:12px">기도하고싶은 내용이 없으면, 추천 주제에대해서 이야기해보세요.</label>
-          <div id="qbox" class="qbox"><div class="muted">연령대를 선택하면 추천 주제가 보여집니다.</div></div>
+        <label style="margin-top:12px">기도하고싶은 내용을 입력해주세요</label>
+        <input id="custom" placeholder="자유 질문 입력">
+        <label style="margin-top:12px">기도하고싶은 내용이 없으면, 추천 주제에대해서 이야기해보세요.</label>
+        <div id="qbox" class="qbox">
+          <div class="muted">연령대를 선택하면 추천 주제가 보여집니다.</div>
+        </div>
 
-          <div class="actions" style="margin-top:10px">
-              <button id="ask" class="btn-ask">이야기하기</button>
-              <button id="clear" class="btn-clear">대화내용 초기화</button>
-          </div>
+        <div class="actions" style="margin-top:10px">
+          <button id="ask" class="btn-ask">이야기하기</button>
+          <button id="clear" class="btn-clear">대화내용 초기화</button>
+        </div>
       </div>
+
       <div class="card">
         <h3>대화</h3>
         <div id="chat" class="chat"></div>
@@ -39,108 +41,157 @@
     </div>
   </div>
 
-<script>
-  const APPS_SCRIPT_URL='https://script.google.com/macros/s/AKfycbxjy-PnVTVofMAiTkNmWvYdwr7dODSbsF0tD6-W9og3fHDRk0spy98whbojlwcCwgXvUQ/exec';
-  const ageEl=document.getElementById('age');
-  const qbox=document.getElementById('qbox');
-  const customEl=document.getElementById('custom');
-  const askBtn=document.getElementById('ask');
-  const clearBtn=document.getElementById('clear');
-  const chatEl=document.getElementById('chat');
+  <script>
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjy-PnVTVofMAiTkNmWvYdwr7dODSbsF0tD6-W9og3fHDRk0spy98whbojlwcCwgXvUQ/exec';
+    const ageEl = document.getElementById('age');
+    const qbox = document.getElementById('qbox');
+    const customEl = document.getElementById('custom');
+    const askBtn = document.getElementById('ask');
+    const clearBtn = document.getElementById('clear');
+    const chatEl = document.getElementById('chat');
 
-  let state={ age:'', persona:null, background:'', questions:[], history:[], template:null };
-  const key=()=>`qa-history:${state.age}`;
+    let state = { age:'', persona:null, background:'', questions:[], history:[], template:null };
+    const key = () => `qa-history:${state.age}`;
 
-  ageEl.addEventListener('change', loadMeta);
-
-  async function loadMeta(){
-    state.age=ageEl.value; if(!state.age){ qbox.innerHTML='<div class="muted">연령대를 먼저 선택</div>'; return; }
-    try{
-      const res=await fetch(`${APPS_SCRIPT_URL}?age=${encodeURIComponent(state.age)}`);
-      const data=await res.json();
-      state.persona=data.persona||null; state.background=data.background||''; state.template=data.template||null;
-      state.questions=Array.isArray(data.questions)?data.questions:[];
-      renderCheckboxes(state.questions);
-      loadHistory();
-    }catch(e){
-      renderMsg(`[오류] 메타 로드 실패: ${e.message}`,'assistant');
+    // 공통: 대화창을 항상 끝으로 스크롤
+    function scrollChatToBottom() {
+      chatEl.scrollTop = chatEl.scrollHeight;
+      const last = chatEl.lastElementChild;
+      if (last && last.scrollIntoView) {
+        last.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
     }
-  }
-function showTypingIndicator() {
-  const div = document.createElement('div');
-  div.className = 'msg ai typing';
-  div.setAttribute('aria-live', 'polite');
-  div.innerHTML = `AI 성경 도우미가 생각중입니다<span class="dots"><span>.</span><span>.</span><span>.</span></span>`;
-  chatEl.appendChild(div);
-  chatEl.scrollTop = chatEl.scrollHeight;
-  return () => { if (div && div.parentNode) div.parentNode.removeChild(div); };
-}
-  function getCheckedQuestions(){ return [...qbox.querySelectorAll('input[type=checkbox]:checked')].map(cb=>cb.value); }
-  function loadHistory(){ chatEl.innerHTML=''; state.history = JSON.parse(localStorage.getItem(key())||'[]'); state.history.forEach(m=>renderMsg(m.content,m.role)); }
-  function saveHistory(){ localStorage.setItem(key(), JSON.stringify(state.history.slice(-50))); }
 
-askBtn.addEventListener('click', async ()=>{
-  if(!state.age){ alert('연령대를 선택하세요.'); return; }
-  const userMessage = customEl.value.trim();
-  const selected = getCheckedQuestions();
-  if(selected.length===0 && !userMessage){ alert('질문을 선택하거나 입력하세요.'); return; }
+    ageEl.addEventListener('change', loadMeta);
 
-  const promptView = [
-    userMessage ? `${userMessage}` : '',
-    selected.length ? selected.join(' | ') : ''
-  ].filter(Boolean).join('\n');
-  renderMsg(promptView,'user');
-
-  askBtn.disabled = true;
-
-  // ✅ 대화창 타이핑 인디케이터 표시
-  const removeTyping = showTypingIndicator();
-
-  try{
-    const body = JSON.stringify({
-      age: state.age, selectedQuestions: selected, userMessage,
-      history: state.history, model:'gpt-4o-mini'
-    });
-    const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
-    const text = await res.text();
-    let data; try { data = JSON.parse(text); } catch { throw new Error(text); }
-    if(data.error) throw new Error(data.error);
-
-    // 인디케이터 제거 후 답변 출력
-    removeTyping();
-    renderMsg(data.reply||'','assistant');
-
-    state.history.push({ role:'user', content: promptView });
-    state.history.push({ role:'assistant', content: data.reply||'' });
-    saveHistory();
-  } catch(err){
-    removeTyping();
-    renderMsg(`[오류] ${err.message}`,'assistant');
-  } finally{
-    askBtn.disabled = false;
-    customEl.value = '';
-    [...qbox.querySelectorAll('input[type=checkbox]')].forEach(cb => cb.checked = false);
-    customEl.focus();
-    chatEl.scrollTop = chatEl.scrollHeight;
-  }
-});
-
-  clearBtn.addEventListener('click', ()=>{ state.history=[]; saveHistory(); loadHistory(); });
-
-  function renderMsg(text, role){
-    const div=document.createElement('div'); div.className='msg '+(role==='user'?'user':'ai'); div.textContent=text;
-    chatEl.appendChild(div); chatEl.scrollTop=chatEl.scrollHeight;
-  }
-    function renderCheckboxes(list){
-      if(!list.length){
-        qbox.innerHTML='<div class="muted">해당 연령대의 추천 질문이 없습니다.</div>';
+    async function loadMeta() {
+      state.age = ageEl.value;
+      if (!state.age) {
+        qbox.innerHTML = '<div class="muted">연령대를 먼저 선택</div>';
         return;
       }
-      qbox.innerHTML = list.map(q=>{
+      try {
+        const res = await fetch(`${APPS_SCRIPT_URL}?age=${encodeURIComponent(state.age)}`);
+        const data = await res.json();
+        state.persona   = data.persona   || null;
+        state.background = data.background || '';
+        state.template  = data.template || null;
+        state.questions = Array.isArray(data.questions) ? data.questions : [];
+        renderCheckboxes(state.questions);
+        loadHistory();
+      } catch (e) {
+        renderMsg(`[오류] 메타 로드 실패: ${e.message}`, 'assistant');
+      }
+    }
+
+    function showTypingIndicator() {
+      const div = document.createElement('div');
+      div.className = 'msg ai typing';
+      div.setAttribute('aria-live', 'polite');
+      div.innerHTML = 'AI 성경 도우미가 생각중입니다<span class="dots"><span>.</span><span>.</span><span>.</span></span>';
+      chatEl.appendChild(div);
+      scrollChatToBottom();
+      return () => {
+        if (div && div.parentNode) div.parentNode.removeChild(div);
+      };
+    }
+
+    function getCheckedQuestions() {
+      return [...qbox.querySelectorAll('input[type=checkbox]:checked')].map(cb => cb.value);
+    }
+
+    function loadHistory() {
+      chatEl.innerHTML = '';
+      state.history = JSON.parse(localStorage.getItem(key()) || '[]');
+      state.history.forEach(m => renderMsg(m.content, m.role));
+      scrollChatToBottom();
+    }
+
+    function saveHistory() {
+      localStorage.setItem(key(), JSON.stringify(state.history.slice(-50)));
+    }
+
+    askBtn.addEventListener('click', async () => {
+      if (!state.age) { alert('연령대를 선택하세요.'); return; }
+
+      const userMessage = customEl.value.trim();
+      const selected = getCheckedQuestions();
+      if (selected.length === 0 && !userMessage) {
+        alert('질문을 선택하거나 입력하세요.');
+        return;
+      }
+
+      const promptView = [
+        userMessage ? `${userMessage}` : '',
+        selected.length ? selected.join(' | ') : ''
+      ].filter(Boolean).join('\n');
+
+      renderMsg(promptView, 'user');
+
+      askBtn.disabled = true;
+
+      const removeTyping = showTypingIndicator();
+
+      try {
+        const body = JSON.stringify({
+          age: state.age,
+          selectedQuestions: selected,
+          userMessage,
+          history: state.history,
+          model: 'gpt-4o-mini'
+        });
+
+        const res = await fetch(APPS_SCRIPT_URL, { method:'POST', body });
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error(text);
+        }
+        if (data.error) throw new Error(data.error);
+
+        removeTyping();
+        renderMsg(data.reply || '', 'assistant');
+
+        state.history.push({ role:'user', content: promptView });
+        state.history.push({ role:'assistant', content: data.reply || '' });
+        saveHistory();
+      } catch (err) {
+        removeTyping();
+        renderMsg(`[오류] ${err.message}`, 'assistant');
+      } finally {
+        askBtn.disabled = false;
+        customEl.value = '';
+        [...qbox.querySelectorAll('input[type=checkbox]')].forEach(cb => cb.checked = false);
+        customEl.focus();
+        scrollChatToBottom();
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      state.history = [];
+      saveHistory();
+      loadHistory();
+    });
+
+    function renderMsg(text, role) {
+      const div = document.createElement('div');
+      div.className = 'msg ' + (role === 'user' ? 'user' : 'ai');
+      div.textContent = text;
+      chatEl.appendChild(div);
+      scrollChatToBottom();
+    }
+
+    function renderCheckboxes(list) {
+      if (!list.length) {
+        qbox.innerHTML = '<div class="muted">해당 연령대의 추천 질문이 없습니다.</div>';
+        return;
+      }
+      qbox.innerHTML = list.map(q => {
         return `<label class="qitem"><input type="checkbox" value="${q.text}"><span>${q.text}</span></label>`;
       }).join('');
     }
-    
-</script>
+  </script>
 </body>
 </html>
