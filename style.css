@@ -56,11 +56,29 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 .msg { padding: 12px 14px; border-radius: 12px; margin: 8px 0; }
 .user { background: var(--user); }
 .ai { background: var(--ai); }
-.actions { display:flex; gap:12px; align-items:stretch; }
-.actions .btn-ask, .actions .btn-clear { width:auto; }
-.actions .btn-ask  { flex:0 0 80%; font-weight:600; }
-.actions .btn-clear{ flex:0 0 20%; background:#f0f0f0; color:#444; border:1px solid #ccc; }
-.actions .btn-clear:hover{ background:#e2e2e2; }
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.actions .btn-ask,
+.actions .btn-clear {
+  flex: 1 1 0;        /* 두 버튼을 동일 비율로 분배 */
+  max-width: 100%;
+  white-space: nowrap;
+  width: auto;
+}
+
+.actions .btn-clear {
+  background: #f0f0f0;
+  color: #444;
+  border: 1px solid #ccc;
+}
+
+.actions .btn-clear:hover {
+  background: #e2e2e2;
+}
 
 /* 입력칸 폭 및 포커스 */
 #custom {
